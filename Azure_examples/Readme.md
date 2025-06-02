@@ -89,10 +89,10 @@ Example: Using the Access key. After adding this block run terraform init comman
 
 terraform {
   backend "azurerm" {
-    access_key           = "abcdefghijklmnopqrstuvwxyz0123456789..."  # Can also be set via `ARM_ACCESS_KEY` environment variable.
-    storage_account_name = "abcd1234"                                 # Can be passed via `-backend-config=`"storage_account_name=<storage account name>"` in the `init` command.
-    container_name       = "tfstate"                                  # Can be passed via `-backend-config=`"container_name=<container name>"` in the `init` command.
-    key                  = "prod.terraform.tfstate"                   # Can be passed via `-backend-config=`"key=<blob key name>"` in the `init` command.
+    access_key           = "abcdefghijklmnopqrstuvwxyz0123456789..." 
+    storage_account_name = "abcd1234"                                 
+    container_name       = "tfstate"                                  
+    key                  = "prod.terraform.tfstate"                 
   }
 }
 **
