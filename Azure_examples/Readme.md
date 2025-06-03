@@ -56,12 +56,10 @@ Local values are like a function's temporary local variables.
 Example:
 
 locals {
-  # Ids for multiple sets of EC2 instances, merged together
   instance_ids = concat(aws_instance.blue.*.id, aws_instance.green.*.id)
 }
 
 locals {
-  # Common tags to be assigned to all resources
   common_tags = {
     Service = local.service_name
     Owner   = local.owner
@@ -91,10 +89,10 @@ Example: Using the Access key. After adding this block run terraform init comman
 
 terraform {
   backend "azurerm" {
-    access_key           = "abcdefghijklmnopqrstuvwxyz0123456789..."  # Can also be set via `ARM_ACCESS_KEY` environment variable.
-    storage_account_name = "abcd1234"                                 # Can be passed via `-backend-config=`"storage_account_name=<storage account name>"` in the `init` command.
-    container_name       = "tfstate"                                  # Can be passed via `-backend-config=`"container_name=<container name>"` in the `init` command.
-    key                  = "prod.terraform.tfstate"                   # Can be passed via `-backend-config=`"key=<blob key name>"` in the `init` command.
+    access_key           = "abcdefghijklmnopqrstuvwxyz0123456789..."  
+    storage_account_name = "abcd1234"                                 
+    container_name       = "tfstate"                                  
+    key                  = "prod.terraform.tfstate"                   
   }
 }
 **
@@ -104,3 +102,91 @@ Data Sources vs Import::
 In data sources we will add the existing infra by using data block and create the resources on top of it. But, In import we will import the existing resources state in statefile and create the resources on top of it.
 
 
+**Functions::
+The Terraform language includes a number of built-in functions that you can call from within expressions to transform and combine values. The general syntax for function calls is a function name followed by comma-separated arguments in parentheses.
+
+Docs: https://developer.hashicorp.com/terraform/language/functions
+
+Example:
+max(5, 12, 9)
+12
+**
+
+**Provisioners::
+It provides the ability to run additional steps (or) tasks when a resource is created (or) destroy.
+This not a replacment of configuration management tools.
+There are three types of it.
+1. File 
+This is used to copy the files from our local mechine to the vm created.
+
+Example:
+provisioner "file" {
+source = "./script.sh"
+destination = "/tmp/script.sh"
+}
+
+2. Local Exec
+This is used to execute the command in local ssystem.
+Example:
+provisioner "local-exec" {
+    command = "echo 'test' > /tmp/test.txt"
+}
+
+3. Remote Exec
+This to execute command in the remote system created.
+
+Example:
+provisioner "local-exec" {
+  inline = ["ls -a /tmp"]
+
+}
+**
+
+**Workspaces::
+To seperate different environments we can use concept of workspaces in terraform.
+After creating a workspace teraaform will create a folder naming that workspace name. After executing the apply command the state file will create in that perticular workspace folder.
+commands:
+terraform workspace list --> It is to list the workspaces available.
+terraform workspace new dev --> It is to create the workspace.
+terraform workspace select dev --> To switch the workspaces
+terraform workspace show --> To check current workspace we are in
+terraform init
+terraform apply -var-file dev.tfvars --> It create the resources in dev workspace by using the var ilfe provide in the command.
+
+**
+
+**Meta-Arguments::
+
+By default, a resource block configures one real infrastructure object. However, sometimes you want to manage several similar objects (like a fixed pool of compute instances) without writing a separate block for each one. Terraform has two ways to do this: 
+
+count and for_each.
+
+1. Count:
+The count meta-argument accepts a whole number, and creates that many instances of the resource or module. Each instance has a distinct infrastructure object associated with it, and each is separately created, updated, or destroyed when the configuration is applied.
+
+example:
+resource "aws_instance" "server" {
+  count = 4 # create four similar EC2 instances
+  name          = "PrasanthVM-${count.index}"
+  ami           = "ami-a1b2c3d4"
+  instance_type = "t2.micro"
+
+  tags = {
+    Name = "Server ${count.index}"
+  }
+}
+
+2. Foreach:
+
+The for_each meta-argument accepts a map or a set of strings, and creates an instance for each item in that map or set. Each instance has a distinct infrastructure object associated with it, and each is separately created, updated, or destroyed when the configuration is applied.
+
+Example:
+resource "azurerm_resource_group" "rg" {
+  for_each = tomap({
+    a_group       = "eastus"
+    another_group = "westus2"
+  })
+  name     = each.key
+  location = each.value
+}
+**
